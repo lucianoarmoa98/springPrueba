@@ -31,6 +31,17 @@ public class Usuarios {
 //        this.departamento = departamento;
 //    }
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_rol")
+    private Rol rol;
+
+    public Rol getRol() {
+        return rol;
+    }
+
+    public void setRol(Rol rol) {
+        this.rol = rol;
+    }
 
     public int getId() {
         return id;

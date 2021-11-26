@@ -28,7 +28,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Usuarios> get(@PathVariable Integer id) {
+    public ResponseEntity<Usuarios> get(@PathVariable Long id) {
         try {
             Usuarios usuarios = usuariosServices.getUsuarios(id);
             return new ResponseEntity<Usuarios>(usuarios, HttpStatus.OK);
@@ -45,10 +45,9 @@ public class UsuarioController {
 
     //servicio para editar o actualizar por Id
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@RequestBody Usuarios usuarios, @PathVariable Integer id) {
-        Usuarios usuarioActual = null;
-
+    public ResponseEntity<?> update(@RequestBody Usuarios usuarios, @PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
+        Usuarios usuarioActual = null;
 
         try {
 
@@ -66,7 +65,7 @@ public class UsuarioController {
                 response.put("Mensaje:", "Ocurrio un error al actualizar el usuario ".concat(id.toString()));
                 return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
             }
-            //return new ResponseEntity<>(HttpStatus.OK);
+
 
         } catch (DataAccessException e) {
 
@@ -83,7 +82,7 @@ public class UsuarioController {
 
     //servicio para eliminar por Id
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id) {
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         //map para recorrer los mensajes enviados...
         Map<String, Object> response = new HashMap<>();
 

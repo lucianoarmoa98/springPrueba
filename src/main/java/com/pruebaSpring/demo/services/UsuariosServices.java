@@ -22,11 +22,11 @@ public class UsuariosServices {
             iUsuariosDao.save(usuarios);
         }
 
-        public Usuarios getUsuarios(Integer id) {
+        public Usuarios getUsuarios(Long id) {
             return iUsuariosDao.findById(id).get();
         }
 
-        public void deleteUsuarios(Integer id) {
+        public void deleteUsuarios(Long id) {
             iUsuariosDao.deleteById(id);
         }
 }

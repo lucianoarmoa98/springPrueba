@@ -22,87 +22,124 @@ public class UsuarioController {
     @Autowired
     UsuariosServices usuariosServices;
 
+    //------------------------------------------servicio para listar todos los usuarios
     @GetMapping("")
     public List<Usuarios> list() {
         return usuariosServices.listAllUsuarios();
     }
 
+
+
+    //-------------------------------------------servicio para seleccionar usuario por su Id
     @GetMapping("/{id}")
-    public ResponseEntity<Usuarios> get(@PathVariable Long id) {
+    public ResponseEntity<?> get(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+        Usuarios usuarioSeleccionado = null;
+
         try {
-            Usuarios usuarios = usuariosServices.getUsuarios(id);
-            return new ResponseEntity<Usuarios>(usuarios, HttpStatus.OK);
-        } catch (NoSuchElementException e) {
-            return  new ResponseEntity<Usuarios>(HttpStatus.NOT_FOUND);
+            usuarioSeleccionado = usuariosServices.getUsuarios(id);
+            //-------------------------mensaje que se obtuvo al obtener el usuario, mas los Datos del usuario seleccionado
+            //-------------------------en caso de querer mostrar el nombre -> colorar: .concat(usuarioSeleccionado.getNombre())
+            response.put("Mensaje:", "Se obtuvo correctamente el usuario ".concat(id.toString().concat(" con exito")));
+            response.put("Data:", usuarioSeleccionado);
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            //------------------------mensajes en caso de no encontrar el usuario
+            response.put("Error:", "No se encontro el usuario ".concat(id.toString()));
+            return  new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
         }
     }
 
+    //----------------------------Servicio para guardar usuarios o crear
     @PostMapping("/guardar")
-    public void add(@RequestBody Usuarios usuarios) {
-        usuariosServices.saveUsuarios(usuarios);
+    public ResponseEntity<?> add(@RequestBody Usuarios usuarios) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            //------------------------------validacion de campos vacios
+            if (usuarios.getNombre() == null || usuarios.getApellido() == null){
+                response.put("Error:", "Favor completar todos los campos ");
+                return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+
+            }else {
+            //------------------------------servicio para guardar los cambios
+                response.put("Mensaje:", "Usuario creado con exito");
+                usuariosServices.saveUsuarios(usuarios);
+            }
+
+
+        }catch (DataAccessException e) {
+
+            response.put("Mensaje:", "Error al crear usario ");
+
+            //--------------------------------------envia un mensaje del error, del lado del servidor => getMostSpecificCause
+            response.put("Error:", e.getMostSpecificCause().getMessage());
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
+
+        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 
 
-    //servicio para editar o actualizar por Id
+    //------------------------------------------------servicio para editar o actualizar por Id
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@RequestBody Usuarios usuarios, @PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
         Usuarios usuarioActual = null;
 
         try {
+            //------------------------------validacion de campos vacios
+            if (usuarios.getNombre() == null || usuarios.getApellido() == null){
 
-            usuarioActual = usuariosServices.getUsuarios(id);
+                response.put("Error:", "Favor completar todos los campos ");
+                return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
 
-            if(usuarioActual != null){
+            }else {
+                //-----------------------------se obtiene el Id a modificar
+                usuarioActual = usuariosServices.getUsuarios(id);
 
+                //----------------------------luego pasamos el Id a modificar
                 usuarios.setId(id);
+
+                //----------------------------servicio para guardar los cambios
                 usuariosServices.saveUsuarios(usuarios);
 
                 response.put("Mensaje:", "Se actualizo correctamente el usuario ".concat(id.toString().concat(" con exito")));
                 return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-
-            }else{
-                response.put("Mensaje:", "Ocurrio un error al actualizar el usuario ".concat(id.toString()));
-                return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
             }
 
+        } catch (Exception e) {
 
-        } catch (DataAccessException e) {
-
-            //manejo de mensajes en caso de algun error en el back end
-            //se coloca concat en caso de querer concatenar algun mensaje o objeto
-            response.put("Mensaje:", "No se encontro el usuario ".concat(id.toString()));
-
-            //envia un mensaje del error, del lado del servidor => getMostSpecificCause
-            response.put("Error:", e.getMostSpecificCause().getMessage());
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            //--------------------------------------manejo de mensajes en caso de algun error en el back end
+            //-------------------------------------se coloca concat en caso de querer concatenar algun mensaje o objeto
+            response.put("Error:", "No se encontro el usuario ".concat(id.toString()));
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
 
         }
     }
 
-    //servicio para eliminar por Id
+    //---------------------------------------------servicio para eliminar por Id
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        //map para recorrer los mensajes enviados...
+        //------------------------------------map para recorrer los mensajes enviados...
         Map<String, Object> response = new HashMap<>();
 
         try {
-
+            //------------------------------------se obtiene el Id a eliminar
             usuariosServices.deleteUsuarios(id);
-            //manejo de mensaje en caso de una buena respuesta
-            //se coloca concat en caso de querer concatenar algun mensaje o objeto
+
+            //--------------------------------mensaje personalizado, con concatenacion de Id mas String
             response.put("Mensaje:", "Se elimino correctamente el usuario ".concat(id.toString().concat(" con exito")));
 
         }catch (DataAccessException e) {
-
-            //manejo de mensajes en caso de algun error en el back end
-            //se coloca concat en caso de querer concatenar algun mensaje o objeto
+            //-------------------------------mensaje personalizado, con concatenacion de Id
             response.put("Mensaje:", "Ocurrio un error al eliminar el usuario ".concat(id.toString()));
 
-            //envia un mensaje del error, del lado del servidor => getMostSpecificCause
+            //-----------------------------envia un mensaje del error, del lado del servidor => getMostSpecificCause
             response.put("Error:", e.getMostSpecificCause().getMessage());
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-
         }
 
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
